@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EstateAI Command Center</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;font-family:Inter,Arial,sans-serif;background:#071018;color:#e8eef5}
+body{overflow-x:hidden}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:250px;background:#0b151f;border-right:1px solid #1b2b39;padding:22px 15px;position:fixed;left:0;top:0;bottom:0;overflow-y:auto;z-index:30;transition:transform .2s}
+.logo{display:flex;align-items:center;gap:12px;padding:10px 12px 25px}
+.logo-icon{width:42px;height:42px;border-radius:12px;background:#162c3c;display:flex;align-items:center;justify-content:center;color:#58b8ff;font-size:20px}
+.logo h2{font-size:18px}
+.logo span{display:block;color:#718494;font-size:11px;margin-top:3px}
+.nav-title{color:#506575;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;padding:16px 13px 8px}
+.nav-item{width:100%;border:0;background:transparent;color:#8da0af;padding:11px 13px;border-radius:9px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:3px;text-align:left;font-size:13px;font-family:inherit}
+.nav-item i{width:18px;text-align:center}
+.nav-item:hover,.nav-item.active{background:#142635;color:#fff}
+.nav-item.active{box-shadow:inset 3px 0 0 #54b7ff}
+
+/* MAIN */
+.main{margin-left:250px;width:calc(100% - 250px);min-width:0}
+.topbar{min-height:70px;border-bottom:1px solid #1a2a37;background:#09131c;display:flex;align-items:center;justify-content:space-between;padding:8px 25px;position:sticky;top:0;z-index:15;gap:12px}
+.topbar-left{display:flex;align-items:center;gap:12px;min-width:0}
+.topbar-left h1{font-size:20px}
+.topbar-left p{color:#718494;font-size:12px;margin-top:4px}
+.topbar-right{display:flex;align-items:center;gap:15px}
+.system-status{display:flex;align-items:center;gap:7px;font-size:12px;color:#7ed6a3;white-space:nowrap}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#48d27b;box-shadow:0 0 10px #48d27b;display:inline-block}
+.menu-btn{display:none}
+
+.page{display:none;padding:25px}
+.page.active{display:block}
+.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.section-title h2{font-size:22px}
+.section-title p{color:#718494;font-size:12px;margin-top:3px}
+.gap{height:18px}
+.muted{color:#718494;font-size:11px}
+
+/* BUTTONS */
+.btn{border:1px solid #263d4d;background:#101f2b;color:#dce8f1;padding:10px 15px;border-radius:8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
+.btn:hover{background:#172c3b}
+.btn.primary{background:#1878bd;border-color:#238dd7;color:#fff}
+.btn.primary:hover{background:#1e86d0}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* CARDS */
+.card{background:#0d1923;border:1px solid #1c2d3b;border-radius:12px;padding:18px}
+.card h3{font-size:14px;margin-bottom:15px;display:flex;align-items:center;gap:8px}
+.card h3 i{color:#55b7ff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid2>*,.grid3>*,.call-live>*,.ads-layout>*,.ai-layout>*{min-width:0}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.kpis.four{grid-template-columns:repeat(4,1fr)}
+.kpi{background:#0d1923;border:1px solid #1c2d3b;border-radius:12px;padding:18px}
+.kpi-top{display:flex;justify-content:space-between;color:#718494;font-size:11px}
+.kpi-top i{color:#55b7ff}
+.kpi-value{font-size:25px;font-weight:700;margin-top:13px}
+.kpi-change{color:#67d697;font-size:10px;margin-top:6px}
+
+/* TABLE */
+.table-wrap{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th{text-align:left;color:#607585;font-size:10px;text-transform:uppercase;padding:11px;border-bottom:1px solid #203240}
+td{padding:13px 11px;border-bottom:1px solid #172732;color:#c5d1da;font-size:12px}
+tr:hover td{background:#0f1e29}
+.empty{color:#607585;text-align:center;padding:20px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:6px;font-size:10px;white-space:nowrap}
+.badge.green{background:#103d2b;color:#67d697}
+.badge.blue{background:#103653;color:#61bfff}
+.badge.yellow{background:#463b14;color:#e9ca62}
+.badge.red{background:#48262d;color:#ef7888}
+
+/* PROPERTIES */
+.property-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.property{background:#0d1923;border:1px solid #1c2d3b;border-radius:12px;overflow:hidden}
+.property-img{height:150px;background-color:#122a3a;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#24475f;font-size:40px}
+.property-body{padding:15px}
+.property-body h3{font-size:14px;margin-bottom:6px}
+.property-location{color:#708493;font-size:11px;margin-bottom:12px}
+.property-price{font-size:17px;font-weight:700;margin-bottom:12px}
+.property-meta{display:flex;gap:12px;color:#758897;font-size:10px;margin-bottom:12px}
+
+/* FEEDS */
+.feed{display:flex;flex-direction:column;gap:9px}
+.feed-item{padding:11px;border:1px solid #1a2c39;background:#0b161f;border-radius:8px;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.feed-item strong{color:#e7f0f6}
+.feed-item small{color:#7c909e}
+
+/* AI ASSISTANT */
+.ai-layout{display:grid;grid-template-columns:330px 1fr;gap:20px}
+.jarvis{background:#0c1822;border:1px solid #1c3444;border-radius:14px;padding:25px;text-align:center}
+.orb{width:125px;height:125px;margin:10px auto 25px;border-radius:50%;background:radial-gradient(circle,#5fc4ff 0%,#16486c 45%,#07131d 72%);box-shadow:0 0 25px rgba(63,180,255,.4),0 0 70px rgba(63,180,255,.15);display:flex;align-items:center;justify-content:center;font-size:40px;color:#fff}
+.ai-status{color:#65d998;font-size:11px;margin:8px 0 18px}
+.chat{height:560px;display:flex;flex-direction:column}
+.chat-window{flex:1;overflow-y:auto;padding:10px;border:1px solid #1b2d3a;border-radius:9px;background:#09141d}
+.chat-msg{max-width:82%;padding:11px 13px;border-radius:9px;margin-bottom:10px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word}
+.chat-msg.ai{background:#142936}
+.chat-msg.user{background:#15527c;margin-left:auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border:1px solid #23485f;background:#0a1a25;color:#9fc9e6;border-radius:20px;padding:6px 11px;font-size:11px;cursor:pointer;font-family:inherit}
+.chip:hover{background:#12293a}
+.chat-input{display:flex;gap:8px;margin-top:10px}
+.chat-input input{flex:1;min-width:0;background:#0a151e;border:1px solid #203544;color:#fff;padding:11px;border-radius:8px;outline:none;font-family:inherit}
+
+/* CALLS */
+.call-live{display:grid;grid-template-columns:1fr 1.15fr;gap:18px}
+.live-call{border:1px solid #25516a;background:#0a1d29;border-radius:12px;padding:25px;min-height:360px}
+.call-status{text-align:center;color:#62dc96;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.call-avatar{width:90px;height:90px;border-radius:50%;margin:20px auto;background:#123c54;display:flex;align-items:center;justify-content:center;font-size:30px;color:#62c6ff}
+.call-name{text-align:center;font-size:20px;font-weight:700}
+.call-language{text-align:center;color:#77909f;margin-top:6px;font-size:11px}
+.call-purpose{text-align:center;color:#b7c5cf;margin-top:12px;font-size:12px}
+.wave{display:flex;justify-content:center;align-items:center;gap:4px;height:55px;margin-top:18px}
+.wave span{width:4px;background:#48b9ff;border-radius:4px;animation:wave .8s infinite ease-in-out}
+.wave span:nth-child(1){height:18px}.wave span:nth-child(2){height:35px;animation-delay:.1s}.wave span:nth-child(3){height:50px;animation-delay:.2s}.wave span:nth-child(4){height:28px;animation-delay:.3s}.wave span:nth-child(5){height:42px;animation-delay:.4s}.wave span:nth-child(6){height:22px;animation-delay:.5s}.wave span:nth-child(7){height:38px;animation-delay:.6s}
+@keyframes wave{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(1)}}
+
+/* ADS */
+.ads-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.ad-step{padding:13px;border:1px solid #1b2d39;border-radius:8px;margin-bottom:8px;background:#0a151e;font-size:11px;display:flex;align-items:center;gap:10px;color:#7c909e}
+.ad-step i{color:#3b5568}
+.ad-step.done{color:#e7f0f6}
+.ad-step.done i{color:#55bdff}
+.ad-preview{margin-top:14px;padding:16px;border:1px solid #25516a;background:#0a1d29;border-radius:10px;font-size:12px;line-height:1.6;white-space:pre-wrap}
+.ad-preview strong{display:block;font-size:14px;margin-bottom:6px;color:#fff}
+.social-row{display:flex;align-items:center;justify-content:space-between;padding:15px;border:1px solid #1b2d39;border-radius:8px;margin-bottom:9px;background:#0a151e;font-size:12px}
+.social-left{display:flex;align-items:center;gap:10px}
+.social-left i{width:20px;text-align:center}
+.st-idle{color:#607585}.st-posting{color:#e9c95f}.st-posted{color:#5fda91}
+
+/* CLIENTS */
+.client-avatar{width:30px;height:30px;border-radius:50%;background:#173449;color:#68c5ff;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0}
+.client-cell{display:flex;align-items:center}
+
+/* LANGUAGES */
+.lang-list{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.lang{padding:10px;background:#0a151e;border:1px solid #1c2d39;border-radius:8px;font-size:11px}
+.lang.available{border-color:#2a7051}
+.lang.unavailable{opacity:.55}
+
+/* REPORT */
+.report-out{background:#08131c;border:1px solid #1d303e;border-radius:9px;padding:20px;min-height:280px;font-size:12px;line-height:1.7;color:#b9c8d2;white-space:pre-wrap;word-wrap:break-word}
+
+/* FORMS + MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-bg.show{display:flex}
+.modal{width:520px;max-width:100%;max-height:92vh;overflow-y:auto;background:#0d1923;border:1px solid #284252;border-radius:13px;padding:22px}
+.modal h2{margin-bottom:18px;font-size:18px}
+.form-group{margin-bottom:13px}
+.form-group label{display:block;font-size:11px;color:#8093a0;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:11px;border-radius:7px;border:1px solid #243b4a;background:#08131c;color:#fff;outline:none;font-family:inherit;font-size:13px}
+.form-group textarea{min-height:100px;resize:vertical}
+.form-group textarea.memory-box{font-family:monospace;font-size:12px;min-height:280px;color:#c9d8e2}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+
+/* TOAST */
+.toast{position:fixed;right:25px;bottom:25px;background:#102331;border:1px solid #2b4b60;padding:13px 17px;border-radius:8px;display:none;z-index:200;font-size:12px;max-width:340px}
+.toast.show{display:block}
+
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:#071018}
+::-webkit-scrollbar-thumb{background:#263d4c;border-radius:10px}
+
+/* RESPONSIVE */
+@media(max-width:1200px){
+  .kpis,.kpis.four{grid-template-columns:repeat(2,1fr)}
+  .property-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .main{margin-left:0;width:100%}
+  .menu-btn{display:inline-flex}
+  .grid2,.grid3,.ai-layout,.call-live,.ads-layout{grid-template-columns:1fr}
+  .lang-list{grid-template-columns:repeat(2,1fr)}
+  .topbar{padding:8px 16px}
+  .topbar-left h1{font-size:17px}
+  .topbar-left p,.system-status{display:none}
+}
+@media(max-width:560px){
+  .page{padding:16px}
+  .property-grid,.kpis,.kpis.four{grid-template-columns:1fr}
+  .btn .lbl{display:none}
+  .toast{left:16px;right:16px;bottom:16px;max-width:none}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+    <div><h2>EstateAI</h2><span>Elite Homes USA</span></div>
+  </div>
+  <nav id="nav"></nav>
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="btn menu-btn" id="menuBtn" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+    <div>
+      <h1 id="pageTitle">EstateAI Command Center</h1>
+      <p>AI-powered real estate operations</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="system-status"><span class="status-dot"></span>AI System Online</div>
+    <button class="btn" onclick="openScheduleCall()"><i class="fa-solid fa-phone"></i><span class="lbl">Schedule AI Call</span></button>
+  </div>
+</header>
+
+<!-- DASHBOARD -->
+<section class="page active" id="dashboard">
+  <div class="section-title">
+    <div><h2>Dashboard</h2><p>Real-time overview of your real estate business</p></div>
+    <button class="btn primary" onclick="generateReport('Full')"><i class="fa-solid fa-file-lines"></i><span class="lbl">Generate Report</span></button>
+  </div>
+  <div class="kpis" id="dashboardKPIs"></div>
+  <div class="grid2">
+    <div class="card"><h3><i class="fa-solid fa-chart-line"></i>Revenue Overview</h3><canvas id="revenueChart" height="130"></canvas></div>
+    <div class="card"><h3><i class="fa-solid fa-bolt"></i>AI Activity</h3><div class="feed" id="activityFeed"></div></div>
+  </div>
+  <div class="gap"></div>
+  <div class="grid2">
+    <div class="card"><h3><i class="fa-solid fa-phone"></i>Upcoming AI Calls</h3><div class="feed" id="upcomingCalls"></div></div>
+    <div class="card"><h3><i class="fa-solid fa-chart-simple"></i>Business Snapshot</h3>
+      <div class="feed">
+        <div class="feed-item"><span><i class="fa-solid fa-users"></i> Website Visitors</span><strong id="visitorSnapshot">0</strong></div>
+        <div class="feed-item"><span><i class="fa-solid fa-user-plus"></i> New Inquiries</span><strong id="inquirySnapshot">0</strong></div>
+        <div class="feed-item"><span><i class="fa-solid fa-calendar-check"></i> Bookings</span><strong id="bookingSnapshot">0</strong></div>
+        <div class="feed-item"><span><i class="fa-solid fa-phone-volume"></i> AI Calls</span><strong id="callSnapshot">0</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI ASSISTANT -->
+<section class="page" id="assistant">
+  <div class="section-title"><div><h2>AI Assistant</h2><p>Your AI business operator</p></div></div>
+  <div class="ai-layout">
+    <div class="jarvis">
+      <div class="orb"><i class="fa-solid fa-brain"></i></div>
+      <h3>EstateAI</h3>
+      <p class="muted">Powered by OpenRouter</p>
+      <div class="ai-status"><span class="status-dot"></span> AI Online</div>
+      <div class="feed">
+        <div class="feed-item"><span><i class="fa-solid fa-microphone"></i> Voice</span><span class="badge green">ElevenLabs</span></div>
+        <div class="feed-item"><span><i class="fa-solid fa-brain"></i> AI Brain</span><span class="badge green">OpenRouter</span></div>
+        <div class="feed-item"><span><i class="fa-solid fa-database"></i> Memory</span><span class="badge blue">Active</span></div>
+      </div>
+    </div>
+    <div class="card chat">
+      <h3><i class="fa-solid fa-robot"></i>Talk to EstateAI</h3>
+      <div class="chat-window" id="chatWindow"></div>
+      <div class="chips" id="chips"></div>
+      <div class="chat-input">
+        <input id="chatInput" placeholder="Ask EstateAI anything..." autocomplete="off">
+        <button class="btn" onclick="speakLast()" title="Read the last answer aloud"><i class="fa-solid fa-volume-high"></i></button>
+        <button class="btn primary" id="sendBtn" onclick="sendAI()"><i class="fa-solid fa-paper-plane"></i><span class="lbl">Send</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROPERTIES -->
+<section class="page" id="properties">
+  <div class="section-title">
+    <div><h2>Properties</h2><p>AI-managed property inventory</p></div>
+    <button class="btn primary" onclick="openPropertyModal()"><i class="fa-solid fa-plus"></i><span class="lbl">Add Property</span></button>
+  </div>
+  <div class="property-grid" id="propertyGrid"></div>
+</section>
+
+<!-- CLIENTS -->
+<section class="page" id="customers">
+  <div class="section-title">
+    <div><h2>Clients</h2><p>AI-managed international client database</p></div>
+    <button class="btn primary" onclick="openClientModal()"><i class="fa-solid fa-user-plus"></i><span class="lbl">Add Client</span></button>
+  </div>
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>Client</th><th>Language</th><th>Interest</th><th>Budget</th><th>Lead Source</th><th>Status</th><th>Last Contact</th></tr></thead>
+    <tbody id="customerTable"></tbody>
+  </table></div></div>
+</section>
+
+<!-- LEADS -->
+<section class="page" id="leads">
+  <div class="section-title">
+    <div><h2>Leads / CRM</h2><p>AI qualification and follow-up system</p></div>
+    <button class="btn primary" onclick="qualifyLeads()"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="lbl">AI Qualify Leads</span></button>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3><i class="fa-solid fa-fire"></i>Hot Leads</h3><div class="feed" id="hotLeads"></div></div>
+    <div class="card"><h3><i class="fa-solid fa-clock"></i>Follow Up</h3><div class="feed" id="followLeads"></div></div>
+    <div class="card"><h3><i class="fa-solid fa-user-plus"></i>New Leads</h3><div class="feed" id="newLeads"></div></div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-address-book"></i>Lead Database</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Client</th><th>Language</th><th>Interest</th><th>Source</th><th>Score</th><th>Status</th><th>AI Action</th></tr></thead>
+      <tbody id="leadTable"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- BOOKINGS -->
+<section class="page" id="bookings">
+  <div class="section-title">
+    <div><h2>Bookings</h2><p>AI-managed property bookings and viewing appointments</p></div>
+    <button class="btn primary" onclick="openBookingModal()"><i class="fa-solid fa-calendar-plus"></i><span class="lbl">New Booking</span></button>
+  </div>
+  <div class="grid3">
+    <div class="kpi"><div class="kpi-top"><span>Total Bookings</span><i class="fa-solid fa-calendar-check"></i></div><div class="kpi-value" id="totalBookings">0</div><div class="kpi-change">AI managed</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Confirmed</span><i class="fa-solid fa-circle-check"></i></div><div class="kpi-value" id="confirmedBookings">0</div><div class="kpi-change">Confirmed appointments</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Pending</span><i class="fa-solid fa-clock"></i></div><div class="kpi-value" id="pendingBookings">0</div><div class="kpi-change">Awaiting confirmation</div></div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-calendar-days"></i>Booking Activity</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Client</th><th>Language</th><th>Property</th><th>Date</th><th>Type</th><th>Status</th><th>AI Action</th></tr></thead>
+      <tbody id="bookingTable"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- CALLS -->
+<section class="page" id="calls">
+  <div class="section-title">
+    <div><h2>AI Calling Center</h2><p>ElevenLabs-powered AI voice operations</p></div>
+    <button class="btn primary" onclick="openScheduleCall()"><i class="fa-solid fa-phone"></i><span class="lbl">Schedule AI Call</span></button>
+  </div>
+  <div class="call-live">
+    <div class="card"><h3><i class="fa-solid fa-list"></i>AI Calling Queue</h3>
+      <p class="muted" style="margin-bottom:15px">Scheduled calls are automatically processed by the AI.</p>
+      <div class="table-wrap"><table style="min-width:520px">
+        <thead><tr><th>Client</th><th>Language</th><th>Purpose</th><th>Time</th><th>Status</th></tr></thead>
+        <tbody id="callTable"></tbody>
+      </table></div>
+    </div>
+    <div class="card"><h3><i class="fa-solid fa-phone-volume"></i>Live AI Conversation</h3>
+      <div class="live-call">
+        <div class="call-status"><span class="status-dot"></span> AI voice active</div>
+        <div class="call-avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="call-name" id="activeCallName">Talking to John Smith</div>
+        <div class="call-language" id="activeCallLanguage">English</div>
+        <div class="call-purpose" id="activeCallPurpose">AI is handling the client conversation.</div>
+        <div class="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div style="text-align:center;margin-top:10px;color:#62d997;font-size:11px"><i class="fa-solid fa-microphone"></i> ElevenLabs Voice Connected</div>
+        <div style="text-align:center;margin-top:18px"><span class="badge green" id="activeCallStatus"><i class="fa-solid fa-circle"></i> Talking</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-clock-rotate-left"></i>Call History</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Client</th><th>Language</th><th>Phone</th><th>Purpose</th><th>Duration</th><th>Status</th></tr></thead>
+      <tbody id="callHistoryTable"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- MESSAGES -->
+<section class="page" id="messages">
+  <div class="section-title">
+    <div><h2>AI Messages</h2><p>Automated client communication</p></div>
+    <button class="btn primary" onclick="openMessageModal()"><i class="fa-solid fa-paper-plane"></i><span class="lbl">Send Message</span></button>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3><i class="fa-brands fa-whatsapp"></i>WhatsApp</h3><div class="feed">
+      <div class="feed-item"><span>WhatsApp Automation</span><span class="badge green">Connected</span></div>
+      <div class="feed-item"><span>Messages Today</span><strong id="cntWhatsApp">47</strong></div></div></div>
+    <div class="card"><h3><i class="fa-solid fa-mobile-screen"></i>SMS</h3><div class="feed">
+      <div class="feed-item"><span>SMS Automation</span><span class="badge green">Connected</span></div>
+      <div class="feed-item"><span>Messages Today</span><strong id="cntSMS">31</strong></div></div></div>
+    <div class="card"><h3><i class="fa-solid fa-envelope"></i>Email</h3><div class="feed">
+      <div class="feed-item"><span>Email Automation</span><span class="badge green">Connected</span></div>
+      <div class="feed-item"><span>Emails Today</span><strong id="cntEmail">18</strong></div></div></div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-comments"></i>Recent Message Activity</h3><div class="feed" id="messageFeed"></div></div>
+</section>
+
+<!-- MARKETING -->
+<section class="page" id="marketing">
+  <div class="section-title">
+    <div><h2>AI Ads &amp; Marketing</h2><p>AI creates and distributes property advertisements</p></div>
+    <button class="btn primary" id="adBtn" onclick="generateAd()"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="lbl">Generate Advertisement</span></button>
+  </div>
+  <div class="ads-layout">
+    <div class="card"><h3><i class="fa-solid fa-robot"></i>AI Advertisement Generator</h3>
+      <div class="form-group"><label>Property to advertise</label><select id="adPropertyName"></select></div>
+      <div id="adGeneration"></div>
+      <div id="adPreview"></div>
+    </div>
+    <div class="card"><h3><i class="fa-solid fa-share-nodes"></i>Social Media Automation</h3>
+      <p class="muted" style="margin-bottom:18px">AI automatically publishes generated advertisements across social platforms.</p>
+      <div id="socialList"></div>
+    </div>
+  </div>
+  <div class="gap"></div>
+  <div class="grid2">
+    <div class="card"><h3><i class="fa-solid fa-bullhorn"></i>Campaigns</h3><div class="feed" id="campaignFeed"></div></div>
+    <div class="card"><h3><i class="fa-solid fa-list-check"></i>Automation Activity</h3><div class="feed" id="adFeed"></div></div>
+  </div>
+</section>
+
+<!-- FINANCE -->
+<section class="page" id="finance">
+  <div class="section-title">
+    <div><h2>Finance / P&amp;L</h2><p>AI financial monitoring and profit analysis</p></div>
+    <button class="btn primary" onclick="generateReport('Financial')"><i class="fa-solid fa-file-invoice-dollar"></i><span class="lbl">Generate Financial Report</span></button>
+  </div>
+  <div class="kpis four">
+    <div class="kpi"><div class="kpi-top"><span>Total Revenue</span><i class="fa-solid fa-arrow-trend-up"></i></div><div class="kpi-value" id="financeRevenue">$0</div><div class="kpi-change">AI tracked revenue</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Total Expenses</span><i class="fa-solid fa-arrow-trend-down"></i></div><div class="kpi-value" id="financeExpenses">$0</div><div class="kpi-change">Operating expenses</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Net Profit</span><i class="fa-solid fa-sack-dollar"></i></div><div class="kpi-value" id="financeProfit">$0</div><div class="kpi-change">Current estimated profit</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Profit Margin</span><i class="fa-solid fa-percent"></i></div><div class="kpi-value" id="profitMargin">0%</div><div class="kpi-change">Business performance</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3><i class="fa-solid fa-chart-column"></i>Financial Overview</h3><canvas id="financeChart" height="180"></canvas></div>
+    <div class="card"><h3><i class="fa-solid fa-receipt"></i>Recent Transactions</h3><div class="feed" id="transactionFeed"></div></div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-money-bill-transfer"></i>Transaction History</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody id="transactionTable"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ANALYTICS -->
+<section class="page" id="analytics">
+  <div class="section-title"><div><h2>Analytics</h2><p>AI business intelligence and customer activity</p></div></div>
+  <div class="kpis four">
+    <div class="kpi"><div class="kpi-top"><span>Visitors</span><i class="fa-solid fa-eye"></i></div><div class="kpi-value" id="analyticsVisitors">0</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Inquiries</span><i class="fa-solid fa-comments"></i></div><div class="kpi-value" id="analyticsInquiries">0</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Conversion</span><i class="fa-solid fa-arrow-right-arrow-left"></i></div><div class="kpi-value" id="analyticsConversions">0%</div></div>
+    <div class="kpi"><div class="kpi-top"><span>Bookings</span><i class="fa-solid fa-calendar-check"></i></div><div class="kpi-value" id="analyticsBookings">0</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3><i class="fa-solid fa-chart-simple"></i>Customer Activity (last 7 days)</h3><canvas id="activityChart" height="220"></canvas></div>
+    <div class="card"><h3><i class="fa-solid fa-chart-pie"></i>Lead Sources</h3><canvas id="leadChart" height="220"></canvas></div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-table"></i>Activity Frequency</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Activity</th><th>Today</th><th>This Week</th><th>This Month</th><th>Total</th></tr></thead>
+      <tbody>
+        <tr><td><i class="fa-solid fa-eye"></i> Website Visitors</td><td>184</td><td>1,248</td><td>5,840</td><td>18,421</td></tr>
+        <tr><td><i class="fa-solid fa-phone"></i> Calls</td><td>17</td><td>42</td><td>184</td><td>1,240</td></tr>
+        <tr><td><i class="fa-solid fa-message"></i> Inquiries</td><td>31</td><td>87</td><td>342</td><td>4,921</td></tr>
+        <tr><td><i class="fa-solid fa-calendar-check"></i> Bookings</td><td>5</td><td>21</td><td>74</td><td>638</td></tr>
+        <tr><td><i class="fa-solid fa-house"></i> Property Orders</td><td>2</td><td>8</td><td>27</td><td>214</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section class="page" id="reports">
+  <div class="section-title">
+    <div><h2>AI Reports</h2><p>Automated business reporting</p></div>
+    <button class="btn primary" onclick="generateReport('Full')"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="lbl">Generate AI Report</span></button>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3><i class="fa-solid fa-users"></i>Client Report</h3>
+      <p class="muted" style="line-height:1.6">AI analyzes clients, languages, interests, lead sources and follow-up activity.</p><br>
+      <button class="btn" onclick="generateReport('Client')"><i class="fa-solid fa-file-lines"></i>Generate</button></div>
+    <div class="card"><h3><i class="fa-solid fa-chart-line"></i>Sales Report</h3>
+      <p class="muted" style="line-height:1.6">AI analyzes inquiries, property interest, bookings and completed orders.</p><br>
+      <button class="btn" onclick="generateReport('Sales')"><i class="fa-solid fa-file-lines"></i>Generate</button></div>
+    <div class="card"><h3><i class="fa-solid fa-dollar-sign"></i>Financial Report</h3>
+      <p class="muted" style="line-height:1.6">AI analyzes revenue, expenses, profit and business performance.</p><br>
+      <button class="btn" onclick="generateReport('Financial')"><i class="fa-solid fa-file-lines"></i>Generate</button></div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-robot"></i>AI Generated Report</h3>
+    <div class="report-out" id="reportOutput">No report generated yet.
+
+Choose a report above, or click "Generate AI Report" for a full business report.</div>
+    <div class="btn-row"><button class="btn" id="downloadReportBtn" style="display:none" onclick="downloadReport()"><i class="fa-solid fa-download"></i>Download report</button></div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="page" id="settings">
+  <div class="section-title"><div><h2>AI Settings</h2><p>Configure EstateAI integrations</p></div></div>
+  <div class="grid2">
+    <div class="card"><h3><i class="fa-solid fa-brain"></i>OpenRouter AI</h3>
+      <div class="form-group"><label>OpenRouter API Key</label><input type="password" id="openrouterKey" placeholder="Using the built-in key. Paste your own to override."></div>
+      <div class="form-group"><label>AI Model</label>
+        <select id="aiModel">
+          <option value="openai/gpt-4o-mini">OpenAI GPT-4o Mini</option>
+          <option value="openai/gpt-4o">OpenAI GPT-4o</option>
+          <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+        </select></div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i>Save Settings</button>
+        <button class="btn" onclick="testAI()"><i class="fa-solid fa-vial"></i>Test AI</button>
+      </div>
+    </div>
+    <div class="card"><h3><i class="fa-solid fa-microphone-lines"></i>ElevenLabs Voice</h3>
+      <div class="form-group"><label>ElevenLabs API Key</label><input type="password" id="elevenLabsKey" placeholder="Using the built-in key. Paste your own to override."></div>
+      <div class="form-group"><label>Voice ID</label><input type="text" id="voiceId" placeholder="ElevenLabs Voice ID"></div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i>Save Settings</button>
+        <button class="btn" onclick="testElevenLabs()"><i class="fa-solid fa-volume-high"></i>Test Voice</button>
+      </div>
+    </div>
+    <div class="card"><h3><i class="fa-solid fa-database"></i>AI Memory</h3>
+      <p class="muted" style="line-height:1.6;margin-bottom:15px">EstateAI uses your business memory and instructions when answering clients.</p>
+      <div class="btn-row">
+        <button class="btn primary" onclick="openMemoryEditor()"><i class="fa-solid fa-pen"></i>Edit memory.json</button>
+        <button class="btn" onclick="downloadMemory()"><i class="fa-solid fa-download"></i>Export</button>
+        <label class="btn" style="cursor:pointer"><i class="fa-solid fa-upload"></i>Import
+          <input type="file" accept=".json" onchange="importMemory(event)" style="display:none"></label>
+      </div>
+    </div>
+    <div class="card"><h3><i class="fa-solid fa-language"></i>AI Languages</h3>
+      <p class="muted" style="margin-bottom:15px">Languages supported by the AI client system.</p>
+      <div class="lang-list" id="languageList"></div>
+    </div>
+  </div>
+  <div class="gap"></div>
+  <div class="card"><h3><i class="fa-solid fa-circle-info"></i>Preview build</h3>
+    <p class="muted" style="line-height:1.7">This is a preview build. Business data shown is sample data, and integrations with calling, messaging and social platforms are simulated. AI chat, voice and report writing run live.</p>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalContent"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   CONFIG
+===================================================== */
+const OPENROUTER_API_KEY = "";
+const ELEVENLABS_API_KEY = "";
+const ELEVENLABS_VOICE_ID = "pNInz6obpgDQGcFmaJgB";
+
+const LANGUAGES = {
+  English:{available:true,code:"en-US"}, French:{available:true,code:"fr-FR"},
+  Spanish:{available:false,code:"es-ES"}, German:{available:false,code:"de-DE"},
+  Portuguese:{available:false,code:"pt-PT"}, Italian:{available:false,code:"it-IT"},
+  Arabic:{available:false,code:"ar-SA"}, Mandarin:{available:false,code:"zh-CN"},
+  Japanese:{available:false,code:"ja-JP"}, Russian:{available:false,code:"ru-RU"}
+};
+
+const NAV = [
+  ["Overview",[["dashboard","chart-line","Dashboard"],["assistant","brain","AI Assistant"]]],
+  ["CRM",[["properties","house","Properties"],["customers","users","Clients"],["leads","user-plus","Leads / CRM"],["bookings","calendar-check","Bookings"]]],
+  ["AI Operations",[["calls","phone-volume","AI Calls"],["messages","message","Messages"],["marketing","bullhorn","Ads & Marketing"]]],
+  ["Business",[["finance","dollar-sign","Finance / P&L"],["analytics","chart-pie","Analytics"],["reports","file-lines","Reports"]]],
+  ["System",[["settings","gear","Settings"]]]
+];
+
+const TITLES = {
+  dashboard:"EstateAI Command Center", assistant:"AI Assistant", properties:"Property Management",
+  customers:"Client Management", leads:"Lead & CRM Center", bookings:"Bookings", calls:"AI Calling Center",
+  messages:"AI Messages", marketing:"AI Ads & Marketing", finance:"Finance / P&L",
+  analytics:"Business Analytics", reports:"AI Reports", settings:"AI Settings"
+};
+
+const IMG = "?auto=format&fit=crop&w=700&q=70";
+const PROPERTY_IMAGES = [
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c",
+  "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea",
+  "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+  "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde",
+  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0"
+];
+
+/* =====================================================
+   STATE
+===================================================== */
+const CUSTOMER_ROWS = [
+ ["John Smith","English","Luxury Villa","$2M","Website","Hot","Today"],
+ ["Emily Johnson","English","Smart Apartment","$900K","Instagram","Qualified","Today"],
+ ["Michael Brown","English","Family Home","$700K","Facebook","Follow-up","Yesterday"],
+ ["Sarah Williams","English","Penthouse","$3M","Website","Hot","Today"],
+ ["David Wilson","English","Waterfront Villa","$2.5M","Referral","Qualified","Today"],
+ ["Marie Dubois","French","Luxury Apartment","$1.2M","Website","Hot","Today"],
+ ["Jean Martin","French","Family Home","$800K","Facebook","Follow-up","Yesterday"],
+ ["Sophie Bernard","French","Penthouse","$2.4M","Instagram","Qualified","Today"],
+ ["Carlos Garcia","Spanish","Luxury Villa","$1.8M","Website","New","Today"],
+ ["Ana Martinez","Spanish","Apartment","$650K","TikTok","Follow-up","Yesterday"],
+ ["Hans Müller","German","Penthouse","$2.8M","Website","Viewing","Today"],
+ ["Anna Schneider","German","Family Home","$950K","Referral","Qualified","Today"],
+ ["João Silva","Portuguese","Waterfront Villa","$2M","Instagram","Interested","Today"],
+ ["Beatriz Costa","Portuguese","Apartment","$720K","Facebook","New","Yesterday"],
+ ["Luca Rossi","Italian","Luxury Apartment","$1.3M","Website","Qualified","Today"],
+ ["Giulia Romano","Italian","Villa","$1.9M","Referral","Follow-up","Yesterday"],
+ ["Omar Hassan","Arabic","Luxury Villa","$3M","Website","Hot","Today"],
+ ["Layla Ahmed","Arabic","Penthouse","$2.5M","Instagram","Qualified","Today"],
+ ["Li Wei","Mandarin","Investment Property","$4M","Website","Hot","Today"],
+ ["Chen Mei","Mandarin","Smart Apartment","$850K","Referral","New","Yesterday"],
+ ["Yuki Tanaka","Japanese","Smart Apartment","$900K","Website","Qualified","Today"],
+ ["Hiroshi Sato","Japanese","Investment Property","$1.7M","LinkedIn","Follow-up","Yesterday"],
+ ["Ivan Petrov","Russian","Penthouse","$2.7M","Website","Hot","Today"],
+ ["Elena Volkova","Russian","Luxury Villa","$2.1M","Instagram","Interested","Today"],
+ ["Robert Anderson","English","Family Home","$780K","Google","New","Today"],
+ ["Jessica Taylor","English","Luxury Apartment","$1.1M","Facebook","Qualified","Today"],
+ ["Daniel Thomas","English","Investment Property","$2.2M","LinkedIn","Hot","Yesterday"],
+ ["Olivia Moore","English","Penthouse","$2.9M","Instagram","Viewing","Today"],
+ ["William Jackson","English","Waterfront Villa","$3.1M","Referral","Qualified","Yesterday"],
+ ["Emma White","English","Apartment","$600K","Website","New","Today"]
+];
+
+const PHONE_PREFIX = {English:"+1 202 555 ",French:"+33 6 55 21 ",Spanish:"+34 612 ",German:"+49 151 ",Portuguese:"+351 912 ",Italian:"+39 331 ",Arabic:"+966 50 ",Mandarin:"+86 138 ",Japanese:"+81 90 ",Russian:"+7 912 "};
+
+const state = {
+  visitors:1248, inquiries:87, callsCount:42, bookingsCount:21, orders:8, revenue:126500, expenses:38200,
+
+  properties:[
+    {name:"Kalorama Luxury Villa",location:"Washington, DC",price:1850000,type:"Luxury Villa",status:"Available",beds:5,image:PROPERTY_IMAGES[0]},
+    {name:"Brickell Executive Apartment",location:"Miami, FL",price:950000,type:"Apartment",status:"Available",beds:3,image:PROPERTY_IMAGES[1]},
+    {name:"Malibu Waterfront Residence",location:"Los Angeles, CA",price:2400000,type:"Waterfront Villa",status:"Reserved",beds:5,image:PROPERTY_IMAGES[2]},
+    {name:"Tribeca Smart Flat",location:"New York, NY",price:780000,type:"Smart Apartment",status:"Available",beds:2,image:PROPERTY_IMAGES[3]},
+    {name:"Katy Family Home",location:"Houston, TX",price:650000,type:"Family Home",status:"Available",beds:4,image:PROPERTY_IMAGES[4]},
+    {name:"Palm Jumeirah Penthouse",location:"Dubai, UAE",price:3100000,type:"Penthouse",status:"Available",beds:4,image:PROPERTY_IMAGES[5]}
+  ],
+
+  customers: CUSTOMER_ROWS.map((r,i)=>({
+    name:r[0],language:r[1],interest:r[2],budget:r[3],source:r[4],status:r[5],last:r[6],
+    phone:(PHONE_PREFIX[r[1]]||"+1 202 555 ")+"01"+String(10+i*3)
+  })),
+
+  leads:[],
+
+  bookings:[
+    {client:"John Smith",language:"English",property:"Kalorama Luxury Villa",date:"2026-09-20",type:"Viewing",status:"Confirmed"},
+    {client:"Marie Dubois",language:"French",property:"Brickell Executive Apartment",date:"2026-09-21",type:"Viewing",status:"Confirmed"},
+    {client:"Sarah Williams",language:"English",property:"Palm Jumeirah Penthouse",date:"2026-09-22",type:"Viewing",status:"Pending"},
+    {client:"Li Wei",language:"Mandarin",property:"Malibu Waterfront Residence",date:"2026-09-23",type:"Property Consultation",status:"Pending"}
+  ],
+
+  calls:[
+    {client:"Sarah Williams",language:"English",phone:"+1 202 555 0148",purpose:"Property follow-up",duration:"04:21",status:"Completed"},
+    {client:"Jean Martin",language:"French",phone:"+33 6 55 21 44 82",purpose:"Viewing confirmation",duration:"03:48",status:"Completed"},
+    {client:"David Wilson",language:"English",phone:"+1 305 555 0191",purpose:"Lead qualification",duration:"05:12",status:"Completed"}
+  ],
+
+  scheduledCalls:[
+    {client:"Emily Johnson",language:"English",phone:"+1 202 555 0113",purpose:"Viewing reminder",when:"Today, 3:30 PM",status:"Scheduled",seed:true},
+    {client:"Sophie Bernard",language:"French",phone:"+33 6 55 21 0122",purpose:"Lead qualification",when:"Today, 5:00 PM",status:"Scheduled",seed:true}
+  ],
+
+  messages:[
+    {client:"John Smith",channel:"WhatsApp",text:"AI is confirming your property viewing.",status:"Sent"},
+    {client:"Emily Johnson",channel:"SMS",text:"Your apartment viewing has been scheduled.",status:"Sent"},
+    {client:"Michael Brown",channel:"Email",text:"AI follow-up regarding your property inquiry.",status:"Sent"},
+    {client:"Marie Dubois",channel:"WhatsApp",text:"Votre visite de propriété est confirmée.",status:"Sent"},
+    {client:"Li Wei",channel:"Email",text:"Property investment information has been sent.",status:"Sent"}
+  ],
+
+  campaigns:[
+    {name:"Luxury Villa Campaign",platform:"Facebook",status:"Active",reach:"12,480"},
+    {name:"Penthouse Promotion",platform:"Instagram",status:"Active",reach:"8,920"},
+    {name:"Family Home Campaign",platform:"TikTok",status:"Published",reach:"17,340"}
+  ],
+
+  adLog:[
+    {icon:"fa-solid fa-wand-magic-sparkles",text:"AI generated luxury villa advertisement",status:"Completed"},
+    {icon:"fa-brands fa-tiktok",text:"TikTok advertisement",status:"Posted"},
+    {icon:"fa-brands fa-facebook",text:"Facebook advertisement",status:"Posted"},
+    {icon:"fa-brands fa-instagram",text:"Instagram advertisement",status:"Posted"}
+  ],
+
+  transactions:[
+    {date:"2026-09-19",description:"Property Commission",type:"Revenue",amount:85000,status:"Completed"},
+    {date:"2026-09-18",description:"Marketing Campaign",type:"Expense",amount:4200,status:"Completed"},
+    {date:"2026-09-17",description:"Property Commission",type:"Revenue",amount:125000,status:"Completed"},
+    {date:"2026-09-16",description:"Office Operations",type:"Expense",amount:3800,status:"Completed"}
+  ],
+
+  activity:[
+    "AI generated a new property advertisement.","AI contacted Sarah Williams.","New client Carlos Garcia was added.",
+    "Viewing booked for John Smith.","AI completed French follow-up with Marie Dubois.","New investment inquiry received from Li Wei."
+  ],
+
+  memory:{
+    business_name:"Elite Homes USA",
+    owner_preferences:["Always be professional","Never promise a property is available without checking","Use USD for prices"],
+    ai_instructions:["Keep responses concise","Always offer to schedule a viewing","Treat the owner as the final decision maker"]
+  }
+};
+
+const charts = {};
+let lastAI = "";
+let lastReport = "";
+let chatHistory = [];
+let busyCall = false;
+let liveCall = {client:"John Smith",language:"English",purpose:"Property inquiry and viewing assistance"};
+
+/* =====================================================
+   HELPERS
+===================================================== */
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function money(v){return "$"+Number(v||0).toLocaleString("en-US")}
+function moneyShort(v){
+  v=Number(v||0);
+  if(v>=1e6) return "$"+(v/1e6).toFixed(1)+"M";
+  if(v>=1e3) return "$"+(v/1e3).toFixed(0)+"K";
+  return money(v);
+}
+function escapeHTML(v){
+  return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+let toastTimer;
+function toast(msg){
+  const el=$("toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("show"),3200);
+}
+function addActivity(msg){
+  state.activity.unshift(msg); state.activity=state.activity.slice(0,12);
+}
+function calc(){
+  const profit=state.revenue-state.expenses;
+  return {profit,margin:state.revenue?profit/state.revenue*100:0};
+}
+function badgeColor(s){
+  return ({Hot:"red",Qualified:"green",Confirmed:"green",Completed:"green",Posted:"green",Sent:"green",Active:"green",Published:"green",Available:"green",Revenue:"green",
+           Viewing:"blue",Scheduled:"blue",Interested:"blue","In Progress":"blue",Ready:"blue",Expense:"red"})[s]||"yellow";
+}
+const badge = (s,cls) => `<span class="badge ${cls||badgeColor(s)}">${escapeHTML(s)}</span>`;
+const langBadge = l => `<span class="badge blue">${escapeHTML(l)}</span>`;
+function localISO(d){
+  const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function formatWhen(v){
+  const d=new Date(v); if(isNaN(d)) return v;
+  return d.toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+}
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+function buildNav(){
+  $("nav").innerHTML = NAV.map(([group,items])=>
+    `<div class="nav-title">${group}</div>`+
+    items.map(([id,icon,label])=>
+      `<button class="nav-item${id==="dashboard"?" active":""}" data-page="${id}"><i class="fa-solid fa-${icon}"></i>${escapeHTML(label)}</button>`
+    ).join("")
+  ).join("");
+  $("nav").addEventListener("click",e=>{
+    const b=e.target.closest(".nav-item"); if(b) showPage(b.dataset.page);
+  });
+  $("menuBtn").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
+}
+
+function showPage(page){
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===page));
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  $("pageTitle").textContent=TITLES[page]||"EstateAI";
+  $("sidebar").classList.remove("open");
+  window.scrollTo(0,0);
+  if(page==="analytics") renderAnalytics();
+  if(page==="finance") renderFinance();
+  renderCharts(page);
+}
+
+/* =====================================================
+   MODAL + FORM BUILDER
+===================================================== */
+function closeModal(){$("modalBg").classList.remove("show")}
+
+function openForm({title,fields,submit="Save",onSubmit}){
+  const optVal=o=>typeof o==="object"?o.value:o;
+  const optLab=o=>typeof o==="object"?o.label:o;
+  const body=fields.map(f=>{
+    let input;
+    if(f.type==="select"){
+      input=`<select id="f_${f.id}">${f.options.map(o=>`<option value="${escapeHTML(optVal(o))}"${o.disabled?" disabled":""}${optVal(o)===f.value?" selected":""}>${escapeHTML(optLab(o))}</option>`).join("")}</select>`;
+    }else if(f.type==="textarea"){
+      input=`<textarea id="f_${f.id}" class="${f.mono?"memory-box":""}">${escapeHTML(f.value||"")}</textarea>`;
+    }else{
+      input=`<input id="f_${f.id}" type="${f.type||"text"}" value="${escapeHTML(f.value||"")}" placeholder="${escapeHTML(f.placeholder||"")}">`;
+    }
+    return `<div class="form-group"><label>${escapeHTML(f.label)}</label>${input}</div>`;
+  }).join("");
+
+  $("modalContent").innerHTML=`<h2>${escapeHTML(title)}</h2>${body}
+    <div class="modal-actions">
+      <button class="btn" id="modalCancel">Cancel</button>
+      <button class="btn primary" id="modalSubmit">${escapeHTML(submit)}</button>
+    </div>`;
+  $("modalCancel").onclick=closeModal;
+  $("modalSubmit").onclick=()=>{
+    const v={}; fields.forEach(f=>v[f.id]=$("f_"+f.id).value);
+    if(onSubmit(v)!==false) closeModal();
+  };
+  $("modalBg").classList.add("show");
+  return v=>$("f_"+v);
+}
+
+$("modalBg").addEventListener("mousedown",e=>{if(e.target.id==="modalBg") closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape") closeModal()});
+
+/* =====================================================
+   RENDER: DASHBOARD
+===================================================== */
+function renderDashboard(){
+  const c=calc();
+  const kpi=(label,icon,value,change)=>`<div class="kpi"><div class="kpi-top"><span>${label}</span><i class="fa-solid fa-${icon}"></i></div><div class="kpi-value">${value}</div><div class="kpi-change">${change}</div></div>`;
+  $("dashboardKPIs").innerHTML=
+    kpi("Revenue","dollar-sign",moneyShort(state.revenue),"+18.4% this month")+
+    kpi("Visitors","eye",state.visitors.toLocaleString(),"+12.7% this week")+
+    kpi("Inquiries","comments",state.inquiries,"+9.2% this week")+
+    kpi("Bookings","calendar-check",state.bookingsCount,"AI managed")+
+    kpi("Net Profit","chart-line",moneyShort(c.profit),c.margin.toFixed(1)+"% margin");
+
+  $("visitorSnapshot").textContent=state.visitors.toLocaleString();
+  $("inquirySnapshot").textContent=state.inquiries;
+  $("bookingSnapshot").textContent=state.bookingsCount;
+  $("callSnapshot").textContent=state.callsCount;
+
+  $("activityFeed").innerHTML=state.activity.slice(0,8).map(t=>
+    `<div class="feed-item"><span><i class="fa-solid fa-bolt" style="color:#55b7ff"></i> ${escapeHTML(t)}</span></div>`).join("");
+
+  $("upcomingCalls").innerHTML=state.scheduledCalls.length
+    ? state.scheduledCalls.slice(0,5).map(c=>
+      `<div class="feed-item"><span><strong>${escapeHTML(c.client)}</strong><br><small>${escapeHTML(c.language)} · ${escapeHTML(c.purpose)}</small></span>${badge(c.status)}</div>`).join("")
+    : `<div class="feed-item"><span><i class="fa-solid fa-circle-check"></i> No pending calls</span></div>`;
+}
+
+/* =====================================================
+   RENDER: PROPERTIES / CLIENTS / LEADS
+===================================================== */
+function renderProperties(){
+  $("propertyGrid").innerHTML=state.properties.map(p=>`
+    <div class="property">
+      <div class="property-img" style="background-image:url('${escapeHTML(p.image)}${IMG}')"><i class="fa-solid fa-house"></i></div>
+      <div class="property-body">
+        <h3>${escapeHTML(p.name)}</h3>
+        <div class="property-location"><i class="fa-solid fa-location-dot"></i> ${escapeHTML(p.location)}</div>
+        <div class="property-price">${money(p.price)}</div>
+        <div class="property-meta">
+          <span><i class="fa-solid fa-bed"></i> ${p.beds} Beds</span>
+          <span><i class="fa-solid fa-house"></i> ${escapeHTML(p.type)}</span>
+        </div>
+        <span class="badge ${p.status==="Available"?"green":"yellow"}"><i class="fa-solid fa-circle"></i> ${escapeHTML(p.status)}</span>
+      </div>
+    </div>`).join("");
+}
+
+const clientCell = name => `<div class="client-cell"><span class="client-avatar"><i class="fa-solid fa-user"></i></span><strong>${escapeHTML(name)}</strong></div>`;
+
+function renderCustomers(){
+  $("customerTable").innerHTML=state.customers.map(c=>`
+    <tr>
+      <td>${clientCell(c.name)}</td>
+      <td>${langBadge(c.language)}</td>
+      <td>${escapeHTML(c.interest)}</td>
+      <td>${escapeHTML(c.budget)}</td>
+      <td>${escapeHTML(c.source)}</td>
+      <td>${badge(c.status)}</td>
+      <td>${escapeHTML(c.last)}</td>
+    </tr>`).join("");
+}
+
+function leadMini(c){
+  return `<div class="feed-item"><span><strong>${escapeHTML(c.name)}</strong><br><small>${escapeHTML(c.language)} · ${escapeHTML(c.interest)}</small></span>${badge(c.status)}</div>`;
+}
+
+function renderLeads(){
+  state.leads=state.customers.map((c,i)=>({...c,idx:i,score:c.status==="Hot"?90-i%7:c.status==="Qualified"?75-i%8:50-i%10}));
+  $("leadTable").innerHTML=state.leads.map(c=>`
+    <tr>
+      <td>${clientCell(c.name)}</td>
+      <td>${langBadge(c.language)}</td>
+      <td>${escapeHTML(c.interest)}</td>
+      <td>${escapeHTML(c.source)}</td>
+      <td><strong>${c.score}</strong>/100</td>
+      <td>${badge(c.status)}</td>
+      <td><button class="btn" onclick="followUp(${c.idx})"><i class="fa-solid fa-robot"></i>AI Follow-up</button></td>
+    </tr>`).join("");
+  const list=s=>state.customers.filter(c=>c.status===s).slice(0,5).map(leadMini).join("")||`<div class="feed-item"><span class="muted">None right now</span></div>`;
+  $("hotLeads").innerHTML=list("Hot");
+  $("followLeads").innerHTML=list("Follow-up");
+  $("newLeads").innerHTML=list("New");
+}
+
+function followUp(i){
+  const c=state.customers[i]; if(!c) return;
+  state.messages.unshift({client:c.name,channel:"WhatsApp",text:c.language==="French"?"Bonjour, je vous contacte au sujet de votre recherche de bien.":"Hello, following up on your property search. Would you like to schedule a viewing?",status:"Sent"});
+  c.last="Today";
+  addActivity(`AI sent a follow-up to ${c.name}`);
+  renderMessages(); renderDashboard();
+  toast(`AI follow-up sent to ${c.name}`);
+}
+
+function qualifyLeads(){
+  toast("AI is qualifying new leads...");
+  setTimeout(()=>{
+    const fresh=state.customers.filter(c=>c.status==="New").slice(0,3);
+    fresh.forEach(c=>{c.status="Qualified";c.last="Today"});
+    addActivity(fresh.length?`AI qualified ${fresh.length} new leads`:"AI reviewed all leads. Nothing new to qualify");
+    renderCustomers(); renderLeads(); renderDashboard();
+    toast(fresh.length?`AI qualified ${fresh.length} leads: ${fresh.map(c=>c.name).join(", ")}`:"All leads are already qualified");
+  },1600);
+}
+
+/* =====================================================
+   RENDER: BOOKINGS
+===================================================== */
+function renderBookings(){
+  $("bookingTable").innerHTML=state.bookings.map((b,i)=>`
+    <tr>
+      <td>${escapeHTML(b.client)}</td>
+      <td>${langBadge(b.language)}</td>
+      <td>${escapeHTML(b.property)}</td>
+      <td>${escapeHTML(b.date)}</td>
+      <td>${escapeHTML(b.type)}</td>
+      <td>${badge(b.status)}</td>
+      <td><button class="btn" onclick="manageBooking(${i})"><i class="fa-solid fa-robot"></i>${b.status==="Pending"?"AI Confirm":"AI Manage"}</button></td>
+    </tr>`).join("");
+  $("totalBookings").textContent=state.bookings.length;
+  $("confirmedBookings").textContent=state.bookings.filter(b=>b.status==="Confirmed").length;
+  $("pendingBookings").textContent=state.bookings.filter(b=>b.status==="Pending").length;
+}
+
+function manageBooking(i){
+  const b=state.bookings[i]; if(!b) return;
+  if(b.status==="Pending"){
+    b.status="Confirmed";
+    addActivity(`AI confirmed the ${b.type.toLowerCase()} with ${b.client}`);
+    toast(`AI confirmed the booking with ${b.client}`);
+  }else{
+    toast(`AI sent a reminder to ${b.client}`);
+  }
+  renderBookings(); renderDashboard();
+}
+
+function openBookingModal(){
+  openForm({
+    title:"New Booking",submit:"Create booking",
+    fields:[
+      {id:"client",label:"Client",type:"select",options:state.customers.map(c=>c.name)},
+      {id:"property",label:"Property",type:"select",options:state.properties.map(p=>p.name)},
+      {id:"date",label:"Date",type:"date",value:localISO(new Date(Date.now()+864e5)).slice(0,10)},
+      {id:"type",label:"Type",type:"select",options:["Viewing","Property Consultation","Contract Signing"]}
+    ],
+    onSubmit(v){
+      const c=state.customers.find(x=>x.name===v.client);
+      state.bookings.unshift({client:v.client,language:c?c.language:"English",property:v.property,date:v.date,type:v.type,status:"Pending"});
+      state.bookingsCount++;
+      addActivity(`Booking created for ${v.client}`);
+      renderBookings(); renderDashboard(); renderAnalytics();
+      toast("Booking created. The AI will confirm it with the client.");
+    }
+  });
+}
+
+/* =====================================================
+   RENDER: CALLS
+===================================================== */
+function renderCalls(){
+  $("callTable").innerHTML=state.scheduledCalls.length
+    ? state.scheduledCalls.map(c=>`
+      <tr>
+        <td>${escapeHTML(c.client)}</td>
+        <td>${langBadge(c.language)}</td>
+        <td>${escapeHTML(c.purpose)}</td>
+        <td>${escapeHTML(c.when||"")}</td>
+        <td>${badge(c.status)}</td>
+      </tr>`).join("")
+    : `<tr><td colspan="5" class="empty">No calls in the queue. Use "Schedule AI Call" to add one.</td></tr>`;
+
+  $("callHistoryTable").innerHTML=state.calls.map(c=>`
+    <tr>
+      <td>${escapeHTML(c.client)}</td>
+      <td>${escapeHTML(c.language)}</td>
+      <td>${escapeHTML(c.phone)}</td>
+      <td>${escapeHTML(c.purpose)}</td>
+      <td>${escapeHTML(c.duration)}</td>
+      <td>${badge(c.status)}</td>
+    </tr>`).join("");
+}
+
+function renderLiveCall(){
+  $("activeCallName").textContent="Talking to "+liveCall.client;
+  $("activeCallLanguage").textContent=liveCall.language;
+  $("activeCallPurpose").textContent=liveCall.purpose||"AI is handling the client conversation.";
+  $("activeCallStatus").innerHTML='<i class="fa-solid fa-circle"></i> Talking';
+}
+
+const LIVE_PURPOSES=["Property inquiry and viewing assistance","Lead qualification","Viewing confirmation","Budget and financing discussion","Property follow-up"];
+let liveIdx=0;
+function rotateLiveCall(){
+  if(busyCall) return;
+  const pool=state.customers.filter(c=>LANGUAGES[c.language]?.available);
+  const c=pool[(liveIdx++*7)%pool.length];
+  liveCall={client:c.name,language:c.language,purpose:LIVE_PURPOSES[liveIdx%LIVE_PURPOSES.length]};
+  renderLiveCall();
+}
+
+function openScheduleCall(){
+  const first=state.customers[0];
+  const get=openForm({
+    title:"Schedule AI Call",submit:"Schedule call",
+    fields:[
+      {id:"client",label:"Client",type:"select",options:state.customers.map(c=>c.name)},
+      {id:"phone",label:"Phone number",type:"tel",value:first.phone},
+      {id:"language",label:"Call language",type:"select",value:"English",options:Object.keys(LANGUAGES).map(l=>({value:l,label:LANGUAGES[l].available?l:l+" (not available)",disabled:!LANGUAGES[l].available}))},
+      {id:"date",label:"Date and time",type:"datetime-local",value:localISO(new Date(Date.now()+2*60000))},
+      {id:"instructions",label:"What should the AI do on this call?",type:"textarea",value:"Introduce yourself, confirm the client's property interest, answer basic questions and offer to schedule a viewing."}
+    ],
+    onSubmit(v){
+      if(!v.client||!v.phone||!v.date){toast("Please complete all required fields.");return false}
+      const call={client:v.client,phone:v.phone,language:v.language,purpose:v.instructions,when:formatWhen(v.date),status:"Scheduled"};
+      state.scheduledCalls.push(call);
+      addActivity(`AI call scheduled with ${v.client}`);
+      renderCalls(); renderDashboard();
+      toast("AI call scheduled. Dialing in a few seconds.");
+      setTimeout(()=>startScheduledCall(call),3000);
+    }
+  });
+  get("client").onchange=()=>{
+    const c=state.customers.find(x=>x.name===get("client").value); if(!c) return;
+    get("phone").value=c.phone;
+    get("language").value=LANGUAGES[c.language]?.available?c.language:"English";
+  };
+}
+
+function fallbackScript(call){
+  const first=call.client.split(" ")[0];
+  if(call.language==="French")
+    return `Bonjour ${first}. Je suis l'assistant IA d'Elite Homes USA. Je vous appelle au sujet de votre recherche de bien immobilier. Souhaitez-vous programmer une visite cette semaine ? Merci de votre temps.`;
+  return `Hello ${first}. This is the AI assistant from Elite Homes USA. I'm calling about your property search. Would you like me to schedule a viewing this week? Thank you for your time.`;
+}
+
+async function startScheduledCall(call){
+  if(!state.scheduledCalls.includes(call)) return;
+  busyCall=true;
+  liveCall={client:call.client,language:call.language,purpose:call.purpose};
+  call.status="In Progress";
+  renderLiveCall(); renderCalls(); renderDashboard();
+
+  let script;
+  try{
+    script=await askAI([{role:"user",content:`Write what you would say in the first 20 seconds of a phone call to ${call.client}, in ${call.language}. Maximum 3 short sentences. Speak as the AI assistant of Elite Homes USA. Call goal: ${call.purpose}. Output only the spoken words.`}]);
+  }catch(e){script=fallbackScript(call)}
+
+  await speak(script,call.language);
+  await sleep(1200);
+  endCall(call);
+}
+
+function endCall(call){
+  if(call.status==="Completed") return;
+  call.status="Completed";
+  state.scheduledCalls=state.scheduledCalls.filter(c=>c!==call);
+  state.callsCount++;
+  const mins=2+Math.floor(Math.random()*4), secs=Math.floor(Math.random()*60);
+  state.calls.unshift({client:call.client,language:call.language,phone:call.phone,purpose:call.purpose,duration:`0${mins}:${String(secs).padStart(2,"0")}`,status:"Completed"});
+  addActivity(`AI completed a call with ${call.client}`);
+  busyCall=false;
+  renderCalls(); renderDashboard();
+  toast(`Call with ${call.client} completed`);
+  setTimeout(rotateLiveCall,2500);
+}
+
+/* =====================================================
+   RENDER: MESSAGES
+===================================================== */
+function renderMessages(){
+  $("messageFeed").innerHTML=state.messages.slice(0,12).map(m=>`
+    <div class="feed-item">
+      <span><strong>${escapeHTML(m.client)}</strong><br><small>${escapeHTML(m.channel)} · ${escapeHTML(m.text)}</small></span>
+      ${badge(m.status)}
+    </div>`).join("");
+}
+
+function openMessageModal(){
+  const get=openForm({
+    title:"Send Message",submit:"Send",
+    fields:[
+      {id:"client",label:"Client",type:"select",options:state.customers.map(c=>c.name)},
+      {id:"channel",label:"Channel",type:"select",options:["WhatsApp","SMS","Email"]},
+      {id:"text",label:"Message",type:"textarea",value:"Hello, this is Elite Homes USA. We have a new property that matches your search. Would you like to schedule a viewing?"}
+    ],
+    onSubmit(v){
+      if(!v.text.trim()){toast("Please write a message.");return false}
+      state.messages.unshift({client:v.client,channel:v.channel,text:v.text.trim(),status:"Sent"});
+      const key={WhatsApp:"cntWhatsApp",SMS:"cntSMS",Email:"cntEmail"}[v.channel];
+      $(key).textContent=Number($(key).textContent)+1;
+      addActivity(`AI sent a ${v.channel} message to ${v.client}`);
+      renderMessages(); renderDashboard();
+      toast(`${v.channel} message sent to ${v.client}`);
+    }
+  });
+  get("client");
+}
+
+/* =====================================================
+   MARKETING
+===================================================== */
+const AD_STEPS=[["fa-circle-check","AI is ready to generate an advertisement"],["fa-heading","Creating property headline"],["fa-align-left","Writing property description"],["fa-image","Selecting property presentation"],["fa-check","Advertisement ready"]];
+const SOCIALS=[["tiktok","TikTok","fa-brands fa-tiktok"],["facebook","Facebook","fa-brands fa-facebook"],["instagram","Instagram","fa-brands fa-instagram"],["linkedin","LinkedIn","fa-brands fa-linkedin"],["twitter","X / Twitter","fa-brands fa-x-twitter"]];
+
+function renderAdSteps(done=0,spinning=-1){
+  $("adGeneration").innerHTML=AD_STEPS.map(([icon,text],i)=>{
+    const isDone=i<done, isSpin=i===spinning;
+    return `<div class="ad-step${isDone?" done":""}"><i class="${isSpin?"fa-solid fa-circle-notch fa-spin":isDone?"fa-solid fa-circle-check":"fa-solid "+icon}"></i><span>${text}</span></div>`;
+  }).join("");
+}
+
+function renderSocial(status={}){
+  $("socialList").innerHTML=SOCIALS.map(([id,name,icon])=>{
+    const s=status[id]||"idle";
+    const label=s==="posting"?`<i class="fa-solid fa-circle-notch fa-spin"></i> Posting to ${name}...`:s==="posted"?`<i class="fa-solid fa-circle-check"></i> Posted`:"Ready to post";
+    return `<div class="social-row"><div class="social-left"><i class="${icon}"></i><span>${name}</span></div><span class="st-${s}">${label}</span></div>`;
+  }).join("");
+}
+
+function renderCampaigns(){
+  $("campaignFeed").innerHTML=state.campaigns.map(c=>`
+    <div class="feed-item">
+      <span><strong>${escapeHTML(c.name)}</strong><br><small>${escapeHTML(c.platform)} · Reach ${escapeHTML(c.reach)}</small></span>
+      ${badge(c.status)}
+    </div>`).join("");
+  $("adFeed").innerHTML=state.adLog.slice(0,8).map(a=>`
+    <div class="feed-item"><span><i class="${a.icon}"></i> ${escapeHTML(a.text)}</span>${badge(a.status)}</div>`).join("");
+}
+
+function populateAdProperties(){
+  const sel=$("adPropertyName"), cur=sel.value;
+  sel.innerHTML=state.properties.map(p=>`<option value="${escapeHTML(p.name)}">${escapeHTML(p.name)}</option>`).join("");
+  if(cur) sel.value=cur;
+}
+
+let adRunning=false;
+async function generateAd(){
+  if(adRunning) return;
+  const p=state.properties.find(x=>x.name===$("adPropertyName").value)||state.properties[0];
+  if(!p){toast("Add a property first.");return}
+  adRunning=true; $("adBtn").disabled=true;
+  $("adPreview").innerHTML="";
+  renderSocial();
+
+  const fallback=`Discover ${p.name}\n${p.beds}-bedroom ${p.type.toLowerCase()} in ${p.location}, offered at ${money(p.price)}. Modern design, prime location and a lifestyle worth seeing in person. Book a private viewing today.`;
+  const adPromise=askAI([{role:"user",content:`Write a short real estate advertisement for this property: ${p.name}, ${p.type}, ${p.beds} bedrooms, ${p.location}, ${money(p.price)}. Format: first line is a headline of at most 8 words. Then a 2-sentence description ending with a call to book a viewing. No hashtags, no emojis.`}]).catch(()=>fallback);
+
+  for(let i=0;i<AD_STEPS.length;i++){
+    renderAdSteps(i,i); await sleep(700);
+    if(i===AD_STEPS.length-2) await adPromise;
+  }
+  renderAdSteps(AD_STEPS.length);
+
+  const text=(await adPromise).trim();
+  const [head,...rest]=text.split("\n").filter(l=>l.trim());
+  $("adPreview").innerHTML=`<div class="ad-preview"><strong>${escapeHTML(head.replace(/^["#*\s]+|["*\s]+$/g,""))}</strong>${escapeHTML(rest.join("\n"))}</div>`;
+
+  state.campaigns.unshift({name:p.name+" Campaign",platform:"Multi-platform",status:"Active",reach:(3000+Math.floor(Math.random()*9000)).toLocaleString("en-US")});
+  state.adLog.unshift({icon:"fa-solid fa-wand-magic-sparkles",text:"AI generated advertisement for "+p.name,status:"Completed"});
+  addActivity(`AI generated an advertisement for ${p.name}`);
+  renderCampaigns(); renderDashboard();
+
+  const status={};
+  for(const [id,name] of SOCIALS){
+    status[id]="posting"; renderSocial(status); await sleep(650);
+    status[id]="posted"; renderSocial(status);
+    state.adLog.unshift({icon:SOCIALS.find(s=>s[0]===id)[2],text:name+" advertisement",status:"Posted"});
+  }
+  renderCampaigns();
+  toast("Advertisement generated and posted.");
+  adRunning=false; $("adBtn").disabled=false;
+}
+
+/* =====================================================
+   FINANCE + ANALYTICS
+===================================================== */
+function renderFinance(){
+  const c=calc();
+  $("financeRevenue").textContent=money(state.revenue);
+  $("financeExpenses").textContent=money(state.expenses);
+  $("financeProfit").textContent=money(c.profit);
+  $("profitMargin").textContent=c.margin.toFixed(1)+"%";
+  $("transactionFeed").innerHTML=state.transactions.slice(0,5).map(t=>`
+    <div class="feed-item">
+      <span><strong>${escapeHTML(t.description)}</strong><br><small>${escapeHTML(t.date)}</small></span>
+      <span style="color:${t.type==="Revenue"?"#62d997":"#ef7888"}">${t.type==="Revenue"?"+":"-"}${money(t.amount)}</span>
+    </div>`).join("");
+  $("transactionTable").innerHTML=state.transactions.map(t=>`
+    <tr><td>${escapeHTML(t.date)}</td><td>${escapeHTML(t.description)}</td><td>${badge(t.type)}</td><td>${money(t.amount)}</td><td>${badge(t.status)}</td></tr>`).join("");
+}
+
+function renderAnalytics(){
+  $("analyticsVisitors").textContent=state.visitors.toLocaleString();
+  $("analyticsInquiries").textContent=state.inquiries;
+  $("analyticsBookings").textContent=state.bookingsCount;
+  $("analyticsConversions").textContent=(state.visitors?state.bookingsCount/state.visitors*100:0).toFixed(2)+"%";
+}
+
+function renderLanguages(){
+  $("languageList").innerHTML=Object.entries(LANGUAGES).map(([n,d])=>
+    `<div class="lang ${d.available?"available":"unavailable"}"><strong>${n}</strong><br><small>${d.available?"Available":"Coming soon"}</small></div>`).join("");
+}
+
+/* =====================================================
+   CHARTS
+===================================================== */
+function makeChart(key,id,config){
+  const el=$(id); if(!el||typeof Chart==="undefined") return;
+  if(charts[key]) charts[key].destroy();
+  charts[key]=new Chart(el,config);
+}
+
+function renderCharts(page){
+  if(typeof Chart==="undefined") return;
+  Chart.defaults.color="#8da0af";
+  Chart.defaults.borderColor="#1c2d3b";
+  Chart.defaults.font.family="Inter, Arial, sans-serif";
+  const months=["Apr","May","Jun","Jul","Aug","Sep"];
+  const money$=v=>"$"+(v/1000)+"K";
+
+  if(page==="dashboard"){
+    makeChart("revenue","revenueChart",{type:"line",data:{labels:months,datasets:[{label:"Revenue",data:[62000,78000,91000,104000,118000,state.revenue],tension:.35,fill:true,borderColor:"#54b7ff",backgroundColor:"rgba(84,183,255,.15)",pointBackgroundColor:"#54b7ff"}]},
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:money$}}}}});
+  }
+  if(page==="finance"){
+    makeChart("finance","financeChart",{type:"bar",data:{labels:months,datasets:[
+      {label:"Revenue",data:[62000,78000,91000,104000,118000,state.revenue],backgroundColor:"#2f9e6f",borderRadius:4},
+      {label:"Expenses",data:[21000,26000,29000,33000,35500,state.expenses],backgroundColor:"#c4515f",borderRadius:4}]},
+      options:{responsive:true,scales:{y:{ticks:{callback:money$}}}}});
+  }
+  if(page==="analytics"){
+    makeChart("activity","activityChart",{type:"bar",data:{labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],datasets:[
+      {label:"Inquiries",data:[9,14,11,16,13,17,7],backgroundColor:"#54b7ff",borderRadius:4},
+      {label:"Calls",data:[5,8,6,7,6,7,3],backgroundColor:"#7d6be0",borderRadius:4},
+      {label:"Bookings",data:[2,4,3,4,3,4,1],backgroundColor:"#2f9e6f",borderRadius:4}]},
+      options:{responsive:true}});
+    const counts={}; state.customers.forEach(c=>counts[c.source]=(counts[c.source]||0)+1);
+    makeChart("leads","leadChart",{type:"doughnut",data:{labels:Object.keys(counts),datasets:[{data:Object.values(counts),backgroundColor:["#54b7ff","#2f9e6f","#e9ca62","#c4515f","#7d6be0","#e08a3c","#4fc3c3"],borderColor:"#0d1923",borderWidth:2}]},
+      options:{responsive:true,plugins:{legend:{position:"right"}}}});
+  }
+}
+
+/* =====================================================
+   AI (OPENROUTER)
+===================================================== */
+const getKey=(name,fallback)=>store.get(name)||fallback;
+
+function buildBusinessContext(){
+  const c=calc();
+  return `Business: ${state.memory.business_name}
+Revenue: ${money(state.revenue)} | Expenses: ${money(state.expenses)} | Profit: ${money(c.profit)}
+Visitors: ${state.visitors} | Inquiries: ${state.inquiries} | Calls: ${state.callsCount} | Bookings: ${state.bookingsCount} | Orders: ${state.orders}
+
+Properties:
+${state.properties.map(p=>`${p.name} | ${p.location} | ${money(p.price)} | ${p.type} | ${p.beds} beds | ${p.status}`).join("\n")}
+
+Clients (first 15):
+${state.customers.slice(0,15).map(x=>`${x.name} | ${x.language} | ${x.interest} | Budget ${x.budget} | ${x.status}`).join("\n")}
+
+Bookings:
+${state.bookings.map(b=>`${b.client} | ${b.property} | ${b.date} | ${b.status}`).join("\n")}
+
+Memory:
+${JSON.stringify(state.memory,null,2)}`;
+}
+
+function baseSystem(){
+  return `You are EstateAI, the AI operating assistant for ${state.memory.business_name}, a real estate company.
+You help with properties, clients, leads, bookings, calls, messages, advertisements, finance, analytics and reports.
+Be professional and concise. Never invent property availability. Only use information from the business context. If something is not available, say so clearly.
+
+Business context:
+${buildBusinessContext()}
+
+Owner instructions:
+${(state.memory.ai_instructions||[]).join("\n")}
+
+Owner preferences:
+${(state.memory.owner_preferences||[]).join("\n")}`;
+}
+
+async function askAI(messages,system){
+  const key=getKey("estate_openrouter_key",OPENROUTER_API_KEY);
+  if(!key) throw new Error("No API key");
+  const model=store.get("estate_ai_model")||"openai/gpt-4o-mini";
+  const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{
+    method:"POST",
+    headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","X-Title":"EstateAI"},
+    body:JSON.stringify({model,messages:[{role:"system",content:system||baseSystem()},...messages],temperature:.4,max_tokens:700})
+  });
+  if(!res.ok) throw new Error("OpenRouter HTTP "+res.status);
+  const data=await res.json();
+  const text=data?.choices?.[0]?.message?.content;
+  if(!text) throw new Error("Empty response");
+  return text.trim();
+}
+
+function demoAIResponse(message){
+  const q=message.toLowerCase(), c=calc();
+  const confirmed=state.bookings.filter(b=>b.status==="Confirmed").length;
+  const pending=state.bookings.filter(b=>b.status==="Pending").length;
+
+  if(/profit|loss|financ|revenue|expense|money/.test(q))
+    return `Here is the current financial summary:\n\nRevenue: ${money(state.revenue)}\nExpenses: ${money(state.expenses)}\nNet profit: ${money(c.profit)} (${c.margin.toFixed(1)}% margin)\n\nThe business has ${state.bookingsCount} bookings and ${state.orders} completed orders this week.`;
+  if(/hot|lead/.test(q)){
+    const hot=state.customers.filter(x=>x.status==="Hot");
+    return `There are ${hot.length} hot leads right now:\n\n${hot.map(x=>`${x.name} (${x.language}) is interested in a ${x.interest.toLowerCase()}, budget ${x.budget}`).join("\n")}\n\nWould you like me to schedule AI follow-up calls with them?`;
+  }
+  if(/propert|house|apartment|villa|penthouse|available/.test(q)){
+    const av=state.properties.filter(p=>p.status==="Available");
+    return `${av.length} of ${state.properties.length} properties are currently available:\n\n${av.map(p=>`${p.name}, ${p.location}, ${money(p.price)}`).join("\n")}\n\nWould you like me to schedule a viewing?`;
+  }
+  if(/booking|viewing|appointment|reservation/.test(q))
+    return `There are ${state.bookings.length} upcoming appointments: ${confirmed} confirmed and ${pending} pending confirmation.\n\n${state.bookings.map(b=>`${b.client}, ${b.property}, ${b.date} (${b.status})`).join("\n")}`;
+  if(/client|customer/.test(q))
+    return `The CRM contains ${state.customers.length} clients across ${new Set(state.customers.map(x=>x.language)).size} languages. The AI tracks each client's language, interest, budget, source, status and last contact.`;
+  if(/call|phone/.test(q))
+    return `The AI has completed ${state.callsCount} calls this week. ${state.scheduledCalls.length} more are in the queue. I can call clients in English and French. Use "Schedule AI Call" to add another.`;
+  if(/market|advert|social|post/.test(q))
+    return `The marketing module writes a property advertisement and publishes it to TikTok, Facebook, Instagram, LinkedIn and X. Open Ads & Marketing and choose a property to generate one.`;
+  if(/language|french|spanish/.test(q))
+    return `I currently handle calls in English and French. Spanish, German, Portuguese, Italian, Arabic, Mandarin, Japanese and Russian are planned.`;
+  return `Here is a quick overview of ${state.memory.business_name}:\n\n${state.properties.length} properties, ${state.customers.length} clients, ${state.bookings.length} upcoming viewings and ${money(c.profit)} in net profit.\n\nI can help with leads, bookings, calls, marketing, finance and reports. What would you like to look at?`;
+}
+
+async function callOpenRouter(message){
+  try{
+    const reply=await askAI([...chatHistory.slice(-8),{role:"user",content:message}]);
+    chatHistory.push({role:"user",content:message},{role:"assistant",content:reply});
+    return reply;
+  }catch(err){
+    console.warn("AI request failed, using local answer:",err);
+    return demoAIResponse(message);
+  }
+}
+
+/* =====================================================
+   CHAT UI
+===================================================== */
+function addChat(role,text){
+  const box=$("chatWindow"), row=document.createElement("div");
+  row.className="chat-msg "+(role==="user"?"user":"ai");
+  row.textContent=text;
+  box.appendChild(row);
+  box.scrollTop=box.scrollHeight;
+  return row;
+}
+
+function clearChat(){
+  $("chatWindow").innerHTML="";
+  addChat("ai","Hello. I'm EstateAI, the AI assistant for Elite Homes USA.\n\nI can help with properties, clients, leads, bookings, calls, advertisements, finance and reports. What would you like to do?");
+}
+
+const CHIPS=["What's our profit this month?","Show me the hot leads","Which properties are available?","Any pending bookings?"];
+function renderChips(){
+  $("chips").innerHTML=CHIPS.map(t=>`<button class="chip">${escapeHTML(t)}</button>`).join("");
+  $("chips").onclick=e=>{const b=e.target.closest(".chip"); if(b){$("chatInput").value=b.textContent;sendAI()}};
+}
+
+let aiBusy=false;
+async function sendAI(){
+  const input=$("chatInput"), message=input.value.trim();
+  if(!message||aiBusy) return;
+  aiBusy=true; $("sendBtn").disabled=true;
+  addChat("user",message); input.value="";
+  const typing=addChat("ai","Thinking...");
+  const answer=await callOpenRouter(message);
+  typing.textContent=answer;
+  $("chatWindow").scrollTop=$("chatWindow").scrollHeight;
+  lastAI=answer;
+  addActivity("AI assistant answered a question");
+  renderDashboard();
+  aiBusy=false; $("sendBtn").disabled=false; input.focus();
+}
+
+/* =====================================================
+   VOICE (ELEVENLABS)
+===================================================== */
+async function speak(text,language="English"){
+  if(!text) return;
+  const key=getKey("estate_elevenlabs_key",ELEVENLABS_API_KEY);
+  const voice=store.get("estate_elevenlabs_voice")||ELEVENLABS_VOICE_ID;
+
+  if(key){
+    try{
+      const res=await fetch("https://api.elevenlabs.io/v1/text-to-speech/"+voice,{
+        method:"POST",
+        headers:{"xi-api-key":key,"Content-Type":"application/json"},
+        body:JSON.stringify({text,model_id:"eleven_multilingual_v2",voice_settings:{stability:.45,similarity_boost:.8,style:.25,use_speaker_boost:true}})
+      });
+      if(!res.ok) throw new Error("ElevenLabs HTTP "+res.status);
+      const url=URL.createObjectURL(await res.blob());
+      const audio=new Audio(url);
+      await audio.play();
+      await new Promise(r=>{audio.onended=r;audio.onerror=r;setTimeout(r,45000)});
+      URL.revokeObjectURL(url);
+      return;
+    }catch(err){console.warn("ElevenLabs failed, using browser voice:",err)}
+  }
+
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+    await new Promise(r=>{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=LANGUAGES[language]?.code||"en-US"; u.rate=.95;
+      u.onend=r; u.onerror=r;
+      speechSynthesis.speak(u);
+      setTimeout(r,45000);
+    });
+  }
+}
+
+function speakLast(){
+  if(lastAI) speak(lastAI,"English"); else toast("Ask EstateAI something first.");
+}
+
+/* =====================================================
+   PROPERTIES / CLIENTS FORMS
+===================================================== */
+function openPropertyModal(){
+  openForm({
+    title:"Add Property",submit:"Add property",
+    fields:[
+      {id:"name",label:"Property name",placeholder:"e.g. Georgetown Townhouse"},
+      {id:"location",label:"Location",placeholder:"e.g. Washington, DC"},
+      {id:"price",label:"Price (USD)",type:"number",placeholder:"1200000"},
+      {id:"type",label:"Type",type:"select",options:["Luxury Villa","Apartment","Penthouse","Family Home","Waterfront Villa","Smart Apartment","Townhouse"]},
+      {id:"beds",label:"Bedrooms",type:"number",value:"3"}
+    ],
+    onSubmit(v){
+      const price=Number(v.price);
+      if(!v.name.trim()||!v.location.trim()||!price){toast("Please enter the name, location and price.");return false}
+      state.properties.push({name:v.name.trim(),location:v.location.trim(),price,type:v.type,status:"Available",beds:Number(v.beds)||1,image:PROPERTY_IMAGES[state.properties.length%PROPERTY_IMAGES.length]});
+      addActivity(`New property added: ${v.name.trim()}`);
+      renderProperties(); renderDashboard(); populateAdProperties();
+      toast("Property added.");
+    }
+  });
+}
+
+function openClientModal(){
+  openForm({
+    title:"Add Client",submit:"Add client",
+    fields:[
+      {id:"name",label:"Full name"},
+      {id:"language",label:"Language",type:"select",options:Object.keys(LANGUAGES)},
+      {id:"interest",label:"Property interest",placeholder:"e.g. Luxury Villa"},
+      {id:"budget",label:"Budget",placeholder:"e.g. $1.5M"},
+      {id:"source",label:"Lead source",type:"select",options:["Website","Instagram","Facebook","TikTok","LinkedIn","Google","Referral"]}
+    ],
+    onSubmit(v){
+      if(!v.name.trim()){toast("Please enter the client's name.");return false}
+      const i=state.customers.length;
+      state.customers.unshift({name:v.name.trim(),language:v.language,interest:v.interest.trim()||"Not specified",budget:v.budget.trim()||"Not specified",source:v.source,status:"New",last:"Today",
+        phone:(PHONE_PREFIX[v.language]||"+1 202 555 ")+"01"+String(10+i*3)});
+      addActivity(`New client ${v.name.trim()} was added.`);
+      renderCustomers(); renderLeads(); renderDashboard();
+      toast("Client added.");
+    }
+  });
+}
+
+/* =====================================================
+   REPORTS
+===================================================== */
+function countBy(list,key){
+  const m={}; list.forEach(x=>m[x[key]]=(m[x[key]]||0)+1);
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`  ${k}: ${v}`).join("\n");
+}
+
+function reportData(type){
+  const c=calc(), parts=[];
+  if(type==="Full"||type==="Financial") parts.push(`FINANCIAL SUMMARY
+-----------------
+Revenue: ${money(state.revenue)}
+Expenses: ${money(state.expenses)}
+Net profit: ${money(c.profit)} (${c.margin.toFixed(1)}% margin)
+
+Recent transactions:
+${state.transactions.map(t=>`  ${t.date}  ${t.description}  ${t.type==="Revenue"?"+":"-"}${money(t.amount)}`).join("\n")}`);
+  if(type==="Full"||type==="Sales") parts.push(`SALES ACTIVITY
+--------------
+Visitors: ${state.visitors.toLocaleString()}
+Inquiries: ${state.inquiries}
+Calls: ${state.callsCount}
+Bookings: ${state.bookingsCount}
+Completed orders: ${state.orders}
+Visitor-to-booking conversion: ${(state.bookingsCount/state.visitors*100).toFixed(2)}%
+
+Properties:
+${state.properties.map(p=>`  ${p.name} | ${p.location} | ${money(p.price)} | ${p.status}`).join("\n")}
+
+Upcoming bookings:
+${state.bookings.map(b=>`  ${b.date}  ${b.client}  ${b.property}  (${b.status})`).join("\n")}`);
+  if(type==="Full"||type==="Client") parts.push(`CLIENTS
+-------
+Total clients: ${state.customers.length}
+
+By language:
+${countBy(state.customers,"language")}
+
+By status:
+${countBy(state.customers,"status")}
+
+By lead source:
+${countBy(state.customers,"source")}
+
+Hot leads:
+${state.customers.filter(x=>x.status==="Hot").map(x=>`  ${x.name} (${x.language}), ${x.interest}, ${x.budget}`).join("\n")}`);
+  return parts.join("\n\n\n");
+}
+
+async function generateReport(type="Full"){
+  showPage("reports");
+  const out=$("reportOutput");
+  $("downloadReportBtn").style.display="none";
+  out.textContent="EstateAI is analyzing your data and writing the report...";
+  const data=reportData(type), c=calc();
+  let summary;
+  try{
+    summary=await askAI([{role:"user",content:`Write a 4 to 5 sentence executive summary for the owner of this business, based on the ${type.toLowerCase()} report data below. Mention the most important strength and the most important thing to act on. Plain text only, no headings or bullet points.\n\n${data}`}]);
+  }catch(e){
+    summary=`Revenue stands at ${money(state.revenue)} against ${money(state.expenses)} in expenses, a net profit of ${money(c.profit)} at a ${c.margin.toFixed(1)}% margin. The business handled ${state.inquiries} inquiries and ${state.callsCount} AI calls this week, leading to ${state.bookingsCount} bookings. Follow up with the hot leads and confirm the pending viewings to keep momentum.`;
+  }
+  const title=type==="Full"?"BUSINESS REPORT":type.toUpperCase()+" REPORT";
+  lastReport=`${state.memory.business_name.toUpperCase()}\nAI ${title}\nGenerated: ${new Date().toLocaleString()}\n\n\nEXECUTIVE SUMMARY\n-----------------\n${summary}\n\n\n${data}\n`;
+  out.textContent=lastReport;
+  $("downloadReportBtn").style.display="inline-flex";
+  addActivity(`AI generated a ${type.toLowerCase()} report`);
+  renderDashboard();
+}
+
+function downloadReport(){
+  if(!lastReport) return;
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([lastReport],{type:"text/plain"}));
+  a.download="elite-homes-ai-report.txt";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* =====================================================
+   MEMORY
+===================================================== */
+function loadMemory(){
+  const saved=store.get("estate_memory"); if(!saved) return;
+  try{state.memory=JSON.parse(saved)}catch(e){console.warn("Could not load memory.json")}
+}
+
+function openMemoryEditor(){
+  openForm({
+    title:"Edit memory.json",submit:"Save memory",
+    fields:[{id:"json",label:"Business memory and AI instructions (JSON)",type:"textarea",mono:true,value:JSON.stringify(state.memory,null,2)}],
+    onSubmit(v){
+      try{
+        state.memory=JSON.parse(v.json);
+        store.set("estate_memory",JSON.stringify(state.memory));
+        chatHistory=[];
+        toast("memory.json saved.");
+      }catch(e){toast("Invalid JSON. Please check the format.");return false}
+    }
+  });
+}
+
+function downloadMemory(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(state.memory,null,2)],{type:"application/json"}));
+  a.download="memory.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function importMemory(e){
+  const file=e.target.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      state.memory=JSON.parse(reader.result);
+      store.set("estate_memory",JSON.stringify(state.memory));
+      chatHistory=[];
+      toast("memory.json imported.");
+    }catch(err){toast("The selected file is not valid JSON.")}
+  };
+  reader.readAsText(file);
+  e.target.value="";
+}
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+function loadSettings(){
+  $("openrouterKey").value=store.get("estate_openrouter_key")||"";
+  $("elevenLabsKey").value=store.get("estate_elevenlabs_key")||"";
+  $("aiModel").value=store.get("estate_ai_model")||"openai/gpt-4o-mini";
+  $("voiceId").value=store.get("estate_elevenlabs_voice")||ELEVENLABS_VOICE_ID;
+}
+
+function saveSettings(){
+  const or=$("openrouterKey").value.trim(), el=$("elevenLabsKey").value.trim();
+  if(or) store.set("estate_openrouter_key",or);
+  if(el) store.set("estate_elevenlabs_key",el);
+  store.set("estate_ai_model",$("aiModel").value);
+  if($("voiceId").value.trim()) store.set("estate_elevenlabs_voice",$("voiceId").value.trim());
+  toast("Settings saved.");
+}
+
+async function testAI(){
+  toast("Testing AI connection...");
+  try{
+    const r=await askAI([{role:"user",content:"Reply with one short sentence confirming the AI system is working."}]);
+    toast("AI connected: "+r.slice(0,120));
+  }catch(e){
+    toast("Could not reach the AI service. Check the API key and try again.");
+  }
+}
+
+async function testElevenLabs(){
+  toast("Testing voice...");
+  await speak("Hello. This is the Elite Homes USA AI voice test.","English");
+  toast("Voice test completed.");
+}
+
+/* =====================================================
+   LIVE ACTIVITY
+===================================================== */
+setInterval(()=>{
+  const events=["Website visitor detected","New property inquiry received","AI reviewed a client profile","Lead activity updated","Property page viewed","AI marketing monitor completed"];
+  const ev=events[Math.floor(Math.random()*events.length)];
+  if(ev==="Website visitor detected") state.visitors+=1+Math.floor(Math.random()*3);
+  if(ev==="New property inquiry received") state.inquiries++;
+  addActivity(ev);
+  renderDashboard(); renderAnalytics();
+},12000);
+
+setInterval(rotateLiveCall,25000);
+
+/* =====================================================
+   INIT
+===================================================== */
+function init(){
+  buildNav();
+  loadMemory();
+  loadSettings();
+  populateAdProperties();
+  renderAdSteps(0);
+  renderSocial();
+  renderDashboard();
+  renderProperties();
+  renderCustomers();
+  renderLeads();
+  renderBookings();
+  renderCalls();
+  renderLiveCall();
+  renderMessages();
+  renderCampaigns();
+  renderFinance();
+  renderAnalytics();
+  renderLanguages();
+  renderChips();
+  clearChat();
+  renderCharts("dashboard");
+  $("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAI()}});
+  addActivity("EstateAI system initialized");
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>
